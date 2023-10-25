@@ -1,0 +1,364 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>党史图谱可视化</title>
+    <style type="text/css">
+        html,
+        body {
+            font: 16pt arial;
+        }
+
+        #viz {
+            position: relative;
+            width: 1000px;
+            height: 615px;
+            border: 2px solid lightslategray;
+            padding: 10px;
+            font: 22pt arial;
+            background-color: #f5f5f5;
+        }
+
+        #nodeInfo {
+            position: absolute;
+            top: 8px;
+            left: 1040px;
+            width: 350px;
+            height: 746px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border: 2px solid lightslategray;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        #cypherContainer {
+            position: absolute;
+            border: 2px solid lightslategray;
+            padding: 10px;
+            width: 500px;
+            height: 100px;
+            margin-top: 7px;
+            background-color: #f5f5f5;
+        }
+
+        #quickQuery {
+            position: absolute;
+            border: 2px solid lightslategray;
+            padding: 10px;
+            width: 220px;
+            height: 100px;
+            left: 540px;
+            top: 654px;
+            background-color: #f5f5f5;
+        }
+
+        #labelQuery {
+            position: absolute;
+            border: 2px solid lightslategray;
+            padding: 10px;
+            width: 217px;
+            height: 100px;
+            left: 791px;
+            top: 654px;
+            background-color: #f5f5f5;
+        }
+
+        .key-text {
+            font-size: 15px;
+        }
+
+        .title-text {
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+    </style>
+
+    <script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+
+    <script type="text/javascript" src="../static/neovis.js"></script>
+
+
+
+
+    <script type="text/javascript">
+        // define config car
+        // instantiate nodevis object
+        // draw
+
+
+        var viz;
+
+        function draw() {
+            var labels = {};
+            var labelTypes = ["people", "spirit", "conference", "event", "place", "time", "vipspirit"];
+
+            // 设置点
+            for (var i = 0; i < labelTypes.length; ++i) {
+                var labelType = labelTypes[i];
+                labels[labelType] = {
+                    "shape": "circle",
+                    "caption": "name",
+                    "color": {
+                        "background": "#ffcc00",
+                        "border": "#ff9900"
+                    },
+                    "font": {
+                        "size": 25,
+                        "color": "#808080"
+                    },
+                };
+
+            }
+
+            var relationships = {};
+            var relationshipsTypes = [
+                "召开地",
+                "发生地",
+                "相关",
+                "包含",
+                "领导",
+                "参与",
+                "父女",
+                "父子",
+                "好友",
+                "夫妻",
+                "母子",
+                "师生",
+                "发源地",
+                "相关会议",
+                "相关事件",
+                "爱党爱军",
+                "爱党爱军无私奉献",
+                "爱国不畏强暴宁难不苟",
+                "爱国艰苦创业奉献",
+                "不畏艰苦",
+                "不畏艰难",
+                "不畏强暴",
+                "吃苦耐劳",
+                "吃苦耐劳特别能战斗无私奉献",
+                "创新",
+                "创新求真务实",
+                "创业开拓创新",
+                "革命英雄主义",
+                "坚定不移",
+                "坚定不移艰苦奋斗",
+                "艰苦创业",
+                "艰苦创业无私奉献",
+                "艰苦奋斗",
+                "艰苦奋斗开拓创新",
+                "艰苦奋斗实事求是",
+                "艰苦奋斗无私奉献",
+                "结合实际艰苦奋斗",
+                "开拓创新",
+                "开拓奋进无私奉献",
+                "联系群众艰苦奋斗",
+                "无私奉献",
+                "宁难不苟",
+                "宁死不屈",
+                "求真务实",
+                "求真务实艰苦奋斗",
+                "求真务实一心为民艰苦奋斗",
+                "全心全意为人民服务开拓创新",
+                "全心全意为人民服务实事求是",
+                "热爱祖国",
+                "热爱祖国无私奉献",
+                "实事求是",
+                "实事求是艰苦奋斗",
+                "团结多数",
+                "团结统一",
+                "团结协作",
+                "顽强拼搏",
+                "万众一心",
+                "无私奉献特别能战斗",
+                "无私奉献团结协作",
+                "自主创新",
+                "自力更生大胆创新无私奉献",
+                "万众一心顽强拼搏敢于胜利",
+                "万众一心众志成城不畏艰险百折不挠",
+                "举国同心舍生忘死尊重科学命运与共",
+                "无私奉献艰苦创业",
+                "勇于探索协同攻坚",
+                "无私奉献协同攻坚",
+                "自主创新协同攻坚",
+                "热爱祖国不畏牺牲",
+                "热爱祖国不畏强暴坚韧不拔",
+                "独立自主实事求是",
+                "坚守信仰",
+                "自力更生艰苦奋斗",
+                "对党忠诚艰苦创业",
+                "坚定理想一心为民艰苦奋斗",
+                "坚守理想对党忠诚艰苦奋斗",
+                "艰苦奋斗不负人民",
+                "艰苦奋斗依靠群众"];
+
+            // 设置关系的边
+            for (var i = 0; i < relationshipsTypes.length; ++i) {
+                var relationshipsType = relationshipsTypes[i];
+                relationships[relationshipsType] = {
+                    // "selectionWidth": "2",
+                    "arrows": "middle",
+                    // "width": 1,
+                    "thickness": 30,
+                    "caption": true,
+                    "font": {
+                        "size": 12,
+                        "color": "#0000FF"
+                    },
+                };
+            }
+
+            // neo4j的配置部分
+            var config = { 
+                container_id: "viz",
+                server_url: "bolt://localhost:7687",
+                server_user: "neo4j",
+                server_password: "12345678",
+                labels: labels,
+                relationships: relationships,
+
+                arrows: true,
+                hierarchical: false,
+                initial_cypher: "MATCH (n)-[r]->(m) RETURN n, r, m",
+            };
+
+            viz = new NeoVis.default(config);
+
+            viz.render();
+
+            viz.registerOnEvent('clickNode', function (event) {
+                //扒取点击的节点信息
+                var nodeIdElement = document.getElementById('nodeId');
+                var nodeValueElement = document.getElementById('nodeValue');
+                var nodeLabelElement = document.getElementById('nodeLabel');
+                var nodeGroupElement = document.getElementById('nodeGroup');
+                var nodeTitleElement = document.getElementById('nodeTitle');
+
+                nodeIdElement.textContent = event.node.id;
+                nodeValueElement.textContent = event.node.value;
+                nodeLabelElement.textContent = event.node.label;
+                nodeGroupElement.textContent = event.node.group;
+                nodeTitleElement.innerHTML = event.node.title;
+            });
+
+            console.log(viz);
+        }
+
+    </script>
+</head>
+
+<body onload="draw()">
+
+    <div id="viz"></div>
+    <!-- 节点信息的显示 -->
+    <div id="nodeInfo">
+        <h2>Node Information</h2>
+        <strong>ID:</strong> <span id="nodeId"></span><br>
+        <strong>Value:</strong> <span id="nodeValue"></span><br>
+        <strong>Label:</strong> <span id="nodeLabel"></span><br>
+        <strong>Group:</strong> <span id="nodeGroup"></span><br>
+        <span id="nodeTitle"></span>
+    </div>
+    <!-- Cypher语句快捷查询 -->
+    <div id="cypherContainer">
+        <span class="title-text">Cypher query:</span><br>
+        <textarea rows="4" cols="50" id="cypher"></textarea>
+        <input type="submit" value="Submit" id="reload">
+        <input type="submit" value="Stabilize" id="stabilize">
+    </div>
+    <!-- 快捷键值查询 -->
+    <div id="quickQuery">
+        <span class="title-text">Quick Key query:</span><br>
+        <span class="key-text">Key:</span>
+        <textarea rows="1" cols="17" id="cypherkey"></textarea><br>
+        <span class="key-text">MaxDepth:</span>
+        <textarea rows="1" cols="17" id="cyphermaxdepth"></textarea><br>
+        <input type="submit" value="Submit" id="reload1">
+        <input type="submit" value="Stabilize" id="stabilize"><br>
+    </div>
+    <!-- 标签查询 -->
+    <div id="labelQuery">
+        <span class="title-text">Convenient query:</span><br>
+        <input type="submit" value="Whole" id="reload2">
+        <input type="submit" value="People" id="reload3">
+        <input type="submit" value="Spirit" id="reload4">
+        <input type="submit" value="Conference" id="reload5">
+        <input type="submit" value="Event" id="reload6">
+        <input type="submit" value="Place" id="reload7">
+        <input type="submit" value="Time" id="reload8">
+        <input type="submit" value="Vipspirit" id="reload9">
+        <br>
+    </div>
+
+</body>
+
+<script>
+    $("#reload9").click(function () {
+        viz.renderWithCypher("MATCH (n:vipspirit)-[r]->(m) RETURN n, r, m");
+    });
+
+    $("#reload8").click(function () {
+        viz.renderWithCypher("MATCH (n:time)-[r]->(m) RETURN n, r, m");
+    });
+
+    $("#reload7").click(function () {
+        viz.renderWithCypher("MATCH (n:place)-[r]->(m) RETURN n, r, m");
+    });
+
+    $("#reload6").click(function () {
+        viz.renderWithCypher("MATCH (n:event)-[r]->(m) RETURN n, r, m");
+    });
+
+    $("#reload5").click(function () {
+        viz.renderWithCypher("MATCH (n:conference)-[r]->(m) RETURN n, r, m");
+    });
+
+    $("#reload4").click(function () {
+        viz.renderWithCypher("MATCH (n:spirit)-[r]->(m) RETURN n, r, m");
+    });
+
+    $("#reload3").click(function () {
+        viz.renderWithCypher("MATCH (n:people)-[r]->(m) RETURN n, r, m");
+    });
+
+    $("#reload2").click(function () {
+        viz.renderWithCypher("MATCH (n)-[r]->(m) RETURN n, r, m");
+    });
+
+    $("#reload1").click(function () {
+        var cypherkey = $("#cypherkey").val();
+        var cyphermaxdepth = $('#cyphermaxdepth').val();
+
+        var querytext = "MATCH path=(n)-[*1.." + cyphermaxdepth + "]-(m) WHERE n.name = '" + cypherkey + "' RETURN path";
+        viz.renderWithCypher(querytext);
+    });
+
+
+    // 点击事件函数搭建
+    $("#reload").click(function () {
+
+        var cypher = $("#cypher").val();
+
+        if (cypher.length == 0) {
+            viz.renderWithCypher("MATCH (n)-[r]->(m) RETURN n, r, m");
+        }
+        else if (cypher.length > 3) {
+            viz.renderWithCypher(cypher);
+        }
+        else {
+            console.log("reload");
+            viz.reload();
+        }
+
+    });
+
+    // 固定视图
+    $("#stabilize").click(function () {
+        viz.stabilize();
+    });
+
+
+</script>
+
+</html>
